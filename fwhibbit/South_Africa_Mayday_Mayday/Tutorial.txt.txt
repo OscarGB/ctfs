@@ -1,0 +1,20 @@
+En primer lugar ejecutamos el programa, fwhibbit, vemos que nos pide una contraseña (1), la cual, obviamente no tenemos.
+Pasaremos a analizar el código ensamblador de nuestro programa, para ello recurriremos a radare2:
+# r2 fwhibbit
+# aaa /*Analizamos todo el binario en busca de funciones*/
+# afl /*Mostramos las funciones*/
+# s main /*Buscamos el main y accedemos a él*/
+# pdf /*Mostramos el codigo*/
+Vemos que el programa despues de escribir "Enter our password" hace un scanf y lo guarda en (rbp-local_18).
+Luego realiza un comparación con rbp-local_28 (2).
+Podemos saber la dirección de memoria (3), (rbp-local_28) está en ($rbp-0xe0)
+Pero no sabemos que valor tiene, asi que necesitamos saberlo.
+Para ello usaremos gdb:
+# gdb fwhibbit
+# b *0x00400915
+# run
+# x/s $rbp-0xe0
+Vemos que tiene valor "null" (4).
+Volvemos a correr el programa, introducimos la contraseña "null" y el programa nos proporciona la flag (5), que es:
+
+fwhibbit{fwhibbit_reversing_rul3s}

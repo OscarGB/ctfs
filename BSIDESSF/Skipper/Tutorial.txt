@@ -1,4 +1,4 @@
-En primer lugar ejecutamos el programa, en nuestro caso skipper-64, vemos que nos da un mensaje de error (1), diciendonos que el nombre de nuestro ordenador no es correcto.
+﻿En primer lugar ejecutamos el programa, en nuestro caso skipper-64, vemos que nos da un mensaje de error (1), diciendonos que el nombre de nuestro ordenador no es correcto.
 Pasaremos a analizar el código ensamblador de nuestro programa, para ello recurrimos a radare2: 
 # r2 skipper-64
 # aaa /*Analizamos todo el binario en busca de funciones*/
@@ -9,7 +9,7 @@ Vemos que el main realiza tres comparaciones (2)(3)(4).
 En la primera lee el nombre de nuestro equipo (0x00402707), la compara con "hax0rz!~" y actúa en consecuencia.
 En la segunda lee la version de OS (0x0040276a), la compara con "2.4.31" y actúa en consecuencia.
 En la tercera lee el nombre de nuestra CPU (0x004027f2), la compara con "AMDisbetter!" y actúa en consecuencia.
-Sabemos que todo programa guarda los inputs en posiciones de memoria del sistema, en el inicio del main, radare2 nos dice las posiciones de memoria de las variables (5), nos interesa local_130, en la posicion (0x410)
+Sabemos que todo programa guarda los inputs en posiciones de memoria del sistema, en el inicio del main, radare2 nos dice las posiciones de memoria de las variables (5), nos interesa local_130, en la posicion (0x410).
 Como no cumplimos los requisitos tendremos que idearnoslas para hacerle creer al programa que lo cumplimos.
 Para ello usaremos gdb:
 # gdb skipper-64
