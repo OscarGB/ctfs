@@ -1,0 +1,79 @@
+En primer lugar descargamos y instalamos la máquina virtual desde:
+https://www.vulnhub.com/entry/nullbyte-1,126/
+
+Tras instalarla realizamos un netdiscover para obtener la IP de nuestra máquina virtual (recuerda tenerla con conexión bridge)
+# netdiscover
+Conseguimos los siguientes datos (mi red, tu obtendrás algo diferente claro) (1)
+
+Luego tendremos que conseguir los puertos abiertos de la máquina (alguno habrá)
+# nmap -A <Ip>
+Te preguntarás por qué ponemos esta bandera:
+-A: intenta detectar el sistema operativo de la máquina (Linux con kernel 3.2-4.
+4) y la versión, así como información extra sobre los puertos.
+Vemos que hay 3 puertos abiertos (2): 
+80: http, debe haber alguna página web almacenada.
+111: rpcbind
+777: ssh (que raro, suele estar en el 22)
+
+Vamos a entrar a la página web a ver que hay:
+Para ello introducimos en firefox la ip seguida de :80
+Vemos una foto y una frase, analizamos el código fuente, vemos que la foto es un gif, asi que la descargamos y utilizamos exiftool para obtener los metadatos (3)
+# exiftool main.gif
+Vemos que tiene un comentario: P-): kzMb5nVYJw
+Vamos a probar si es un subdominio de la web
+
+mozilla # <ip>/kzMb5nVYJw
+
+Efectivamente, lo es, encontramos una página que nos pide una clave, si introducimos cualquier cosa nos muestra invalid key. Vamos a usar Hydra para tratar de encontrar una clave.
+Para usar hydra necesitamos un diccionario de contraseñas, usaremos best110.txt y si no hay suerte probaremos con best1050.txt y luego rockyou.txt, cada cual con más claves.
+
+# hydra <ip> http-form-post "/kzMb5nVYJw/index.php:key^PASS^:invalid key" -l x -P /usr/share/wordlists/dirb/best110.txt
+
+Afortunadamente con best 110.txt hydra nos encuentra la clave: elite (4)
+
+Introducimos esa clave y encontramos otro formulario, introducimos algo a ver que sale, por ejemplo una e, vemos que nos dice "Fetched data successfully", eso indica que es una base de datos.
+Tambien nos da un usuario: ramses. Para ver que php procesa la peticion abrimos el código fuente y vemos que es 420search.php.
+Utilzamos sqlmap:
+
+# sqlmap -u <ip>/kzMb5nVYJw/420search.php?usrtosearch=ramses --tables
+
+Vemos que hay una base de datos llamada seth con una tabla users (5), intentemos volcarla para ver lo que contiene:
+
+# sqlmap -u <ip>/kzMb5nVYJw/420search.php?usrtosearch=ramses -D seth -T users --dump
+
+La volcamos y vemos que tenemos un usuario con una pass enorme (6), no creo que sea la real, debe de estar encriptada. Introduzcamosla en google (7), significa "omega" en md5 base 64.
+
+Como tenemos un usuario y contraseña asi como una base de datos probamos a introducirla en phpmyadmin (<ip>/phpmyadmin/index.php), nos dice que no es correcta.
+Recordamos que la máquina tenia un puerto ssh bastante inusual, el 777, probemos (8):
+
+# ssh ramses@<ip> -p 777
+
+Estamos dentro! ejecutamos un ls y no aparece nada, puede haber algo oculto:
+
+# ls -la
+
+Tenemos el .bash_history, lo abrimos y vemos que el /var/www/backup hay un ejecutable procwatch (9)
+Al ejecutarlo vemos que ejecuta un ps. Una pregunta que nos podemos hacer es: ¿Qué derechos tiene? volvemos a ejecutar ls -la, vemos que tiene derechos de ejecución.
+¿Podremos cambiar la path de ps por una personalizada con un programa nuestro que nos abra una shell con derechos de root?
+
+Vamos a copiar "sh" a nuestra localización:
+
+# cp sh /var/www/backup
+
+Volvemos a nuestra localización y guardamos el path anterior por si acaso:
+
+# echo $PATH > oldpath
+
+Ahora modifiquemosla:
+
+# export PATH=/var/www/backup:/bin
+
+Al abrir el nuevo PATH vemos que ha borrado el anterior, menos mal que lo guardamos (10), como veríes hemos dejado /bin para tener ciertos programas básicos, como ls
+Ahora le cambiamos el nombre a sh y le llamamos ps:
+
+# mv sh ps
+
+De esta manera cuando quiera ejecutar un ps ejecutará "nuestro" ps (que realmente es sh), por lo que nos abrirá una shel con derechos de root.
+Ahora al ejecutar el programa procwatch nos abre la shell (11) y podemos acceder a root (que antes necesitabamos permisos claro) (12).
+
+Se acabó.
