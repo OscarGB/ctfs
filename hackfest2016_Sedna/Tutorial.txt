@@ -1,0 +1,70 @@
+Primero descargamos la máquina virtual de:
+https://www.vulnhub.com/entry/hackfest2016-sedna,181/
+Tras montarla vamos a nuestra máquina de kali y ejecutamos un netdiscover:
+
+#netdiscover
+
+Hallamos el ip y realizamos un escaneo de puertos con nmap:
+
+# nmap -Pn <ip>
+
+Vemos que hay varios puertos abiertos, de los cuales destacan dos de http (1)
+Accedemos a ambas, una nos abre una página con una foto con link a otra foto, realizamos un escaneo con exiftool de ambas, no vemos nada interesante.
+En la otra es una página de configuración.
+
+Queremos ver si hay más ficheros en el servidor, para ello ejecutamos DirBuster (2). Encontramos varios ficheros, exploremos:
+Tenemos dos directiorios importantes: themes y modules, empezaremos por themes, nada que parezca interesante. Modules, más de lo mismo.
+
+Probemos con nikto (3):
+
+# nikto -h <ip>
+
+Nos da algunas pistas, probemos con license.txt, al leerlo vemos algo que relacionamos con los archivos de themes. Este servidor usa BuilderEngine.
+Buscamos en internet las vulnerabilidades. Bingo! hay un exploit que nos permite subir un archivo a /files. Solo hace falta crear el fichero (exploit.html).
+Lo ejecutamos en nuestro navegador y podriamos subir cualquier archivo a /files/
+
+Ahora vamos a intentar ejecutar una shell en nuestro servidor, para ello usaremos la (php-reverse-shell.php) de pentestmonkey.net, cambiando la ip por defecto
+
+Luego ejecutamos netcat para recibir la respuesta:
+
+# nc -v -n -l -p 1234
+
+Posteriormente en la shell que se nos ha abierto vamos a intentar encontrar la primera flag, para ello usaremos locate con el nombre por defecto:
+
+# locate flag.
+
+Vemos que esta en var/www/flag.txt (4). La tenemos (5)
+
+Ahora necesitamos permisos root, para ello usaremos el exploit dirtycow, que nos permite crear un usuario y abrir una shell con permisos de root
+Para ello subimos el exploit 40839 y lo compilamos:
+
+#  gcc -pthread 40839.c -o cow -lcrypt
+# ./cow contrasenia
+
+Ahora accedemos por ssh al servidor:
+
+# ssh firefart@<ip>
+
+Nos acordamos de hacer el comando que estabiliza el sistema:
+
+# echo 0 > /proc/sys/vm/dirty_writeback_centisecs
+
+Nos sale la flag localizado en /root (6)
+
+Ahora sabemos que nos quedan dos flags, hacemos otro locate flag.txt, nada, solo las dos actuales (7).
+Volvemos al inicio del reto, teniamos un servidor tomcat que no nos dejaba entrar. Buscamos en internet y vemos que tomcat guarda sus contraseñas en local, busquemosla.
+Segun la web se encuentran en un fichero xml llamado tomcat-users.xml, ya sabeis:
+
+# locate tomcat-users.xml
+
+Está en /etc/tomcat7
+
+# cat /etc/tomcat7/tomcat-users.xml
+
+Vemos que hay un usuario con una clave "submitthisforpoints", creo que tenemos otra flag =) (8)
+
+Entremos al servidor tomcat, puerto 8080.
+Podemos entrar, pero no encontramos nada de interes (o eso parece de momento).
+
+
+
