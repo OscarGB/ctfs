@@ -1,0 +1,19 @@
+Para esta máquina necesitaremos una respberry pi.
+Descargamos la imagen de https://www.vulnhub.com/entry/thr0nes-ctf-1,183/
+Montamos la imagen y a funcionar:
+
+Comenzamos como siempre:
+
+#netdiscover
+
+Encontramos la ip que nos interesa y utilizamos nmap para ver que puertos tiene abiertos:
+
+#nmap -A <ip>
+
+Vemos que tiene una página web (puerto 80), y un ssh (puerto 22) (1)
+
+Accedemos a la página web y vemos un formulario para introducir una contraseña, abrimos el código fuente:
+Vemos un script javascript que nos desvela la contraseña: ctf (2), la introducimos.
+Nos sale una pantalla explicándonos el ctf, no hay exploits de kernel. abrimos el código fuente.
+Descargamos la foto de fondo, no tiene datos exif interesantes
+
