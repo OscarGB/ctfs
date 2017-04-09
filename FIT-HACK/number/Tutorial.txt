@@ -1,0 +1,11 @@
+En primer lugar ejecutamos el programa, nos pide un número, introducimos uno al azar y nos falla (1).
+Realizamos un análisis con Radare2:
+# r2 number
+# aaa /*Analizar*/
+# afl /*Mostrar funciones*/
+# s main /*Acceder a main*/
+# pdf /*mostrar código*/
+Vemos que realiza una comparación interesante con una resta previamente (2)
+La comparación es con el número 1126(0x466), en la resta le han restado 26(0x1a), por lo que introducimos el número 1152 y nos da la flag (3):
+
+FIT{2.718281828}
