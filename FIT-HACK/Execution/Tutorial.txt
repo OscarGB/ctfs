@@ -1,0 +1,26 @@
+Al descargarlo encontramos un ejecutable:
+
+# ./execution
+
+No nos deja ejecutarlo, ¿Puede ser otra arquitectura?
+
+# file execution
+
+Efectivamente, es ARM, aún asi sabemos que radare2 nos permite desensamblar arm (también)
+
+# r2 execution
+# aaa
+# afl
+# ie /*Muestra los puntos de entrada*/
+# s 0x103f0
+# pdf
+
+Vemos que el main está en la posicion 0x10518 (1)
+
+# s 0x10518
+# pdf
+
+Encontramos una ristra de asignaciones a variables con su posterior impresion (2)
+Introducimos los valores hexadecimales en un conversor a ascii, tenemos la bandera:
+
+FIT{3xecuti0n_c0mp1ete}
