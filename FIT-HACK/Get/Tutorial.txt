@@ -1,0 +1,7 @@
+Encontramos un fichreo pcapng, lo abrimos con wireshark
+
+Vemos que hay paquetes TCP, DNS y HTTP, comenzamos con los HTTP
+Buscando entre ellos vemos lo siguiente en el paquete 179 (1)
+Tenemos la Flag:
+
+FIT{332dref3a5g7h}
