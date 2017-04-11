@@ -1,0 +1,14 @@
+Al descargarnos el archivo vemos que contiene un mp3, lo abrimos y no oimos nada, veamos sus propiedades (1)
+Vemos un comentario que nos dice:
+The pass is dialup.
+
+Eso significa que tiene algún texto encriptado en el archivo
+Como el reto se llama mp3stego buscamos en internet y resulta que es una herramienta de steganografía en mp3.
+Por tanto lo descargamos y introducimos el comando (en windows):
+
+# Decode.exe -X -P dialup connection.mp3
+
+Nos da un archivo .pcm y otro .txt (2)
+Abrimos el txt, tenemos la flag:
+
+FIT{PeePeeHyoroRorro}
