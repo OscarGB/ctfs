@@ -1,0 +1,8 @@
+En primer lugar nos encontramos con un zip con contraseña donde vemos que tiene un archivo flag.txt (que creo que es el que nos interesa) (1)
+Para acceder vamos a probar con fcrackzip:
+
+# fcrackzip -v -l 4-8 -u flag.zip
+
+Lo dejamos actuar y nos da una contraseña (2): 
+Extraemos el archivo y lo abrimos, tenemos la flag:
+
