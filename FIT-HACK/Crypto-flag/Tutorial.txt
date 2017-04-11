@@ -3,6 +3,8 @@ Para acceder vamos a probar con fcrackzip:
 
 # fcrackzip -v -l 4-8 -u flag.zip
 
-Lo dejamos actuar y nos da una contraseña (2): 
+Lo dejamos actuar y nos da una contraseña (2): 1864
 Extraemos el archivo y lo abrimos, tenemos la flag:
+
+FIT{f1s4a3DS2faQ1}
 
