@@ -17,3 +17,8 @@ Vemos un script javascript que nos desvela la contraseña: ctf (2), la introducim
 Nos sale una pantalla explicándonos el ctf, no hay exploits de kernel. abrimos el código fuente.
 Descargamos la foto de fondo, no tiene datos exif interesantes
 
+Vamos a realizar un dirb a la página <ip>/ctf (3) 
+
+# dirb http://192.168.1.129/ctf/pagomisd3udas/
+
+encontramos un robots.txt accedemos a él y vemos lo que parece un directorio: pagomisd3udas/, accedemos, hemos encontrado a Tyrion, descargamos la imagen
