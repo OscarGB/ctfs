@@ -19,6 +19,6 @@ Descargamos la foto de fondo, no tiene datos exif interesantes
 
 Vamos a realizar un dirb a la página <ip>/ctf (3) 
 
-# dirb http://192.168.1.129/ctf/pagomisd3udas/
+# dirb http://192.168.1.129/ctf/
 
-encontramos un robots.txt accedemos a él y vemos lo que parece un directorio: pagomisd3udas/, accedemos, hemos encontrado a Tyrion, descargamos la imagen
+encontramos un robots.txt accedemos a él y vemos lo que parece un directorio: pagomisd3udas/, accedemos, hemos encontrado a Tyrion, descargamos la imagen, nada interesante.
