@@ -1,0 +1,122 @@
+En primer lugar descargamos la máquina de:
+
+La montamos en VirtualBox (en nuestro caso)
+
+Para comenzar el análisis buscamos la dirección ip de la máquina objetivo:
+
+# netdiscover
+
+Tenemos la ip: 192.168.1.105 (1)
+
+Ahora procedemos a realizar un escaneo de puertos:
+
+# nmap -sV -Pn 192.168.1.105
+
+Vemos que tiene un puerto ssh cerrado y un http abierto. (2)
+Por tanto abrimos firefox y accedemos a la ip.
+Nos encontramos una aplicación bastante divertida, nos entretenemos un rato con ella pero no aporta nada interesante.
+
+Realizamos un Dirb a la página para encontrar directorios que puedan ser interesantes.
+
+# dirb http://192.168.1.105
+
+Encontramos que existe el archivo robots.txt y vemos una instalación de Wordpress (puede ser interesante)
+
+Accedemos a robots.txt (192.168.1.105/robots.txt) y encontramos dos entradas (3) accedemos a la que parece ser una flag: flag-1-of-3.txt (192.168.1.105/key-1-of-3.txt).
+Tenemos la primera flag (4)
+
+Ahora accedemos a 192.168.1.105/fsocity.dic Descargamos lo que parece ser un diccionario para fuerza bruta.
+Eliminemos repetidos y ordenemoslo:
+
+# sort -u fsocity.dic > fsocity_sorted.dic
+
+Guardamos lo que tenemos de momento y realizamos un nikto a ver si encontramos algo de valor (5):
+
+# nikto -h 192.168.1.105
+
+Nada nuevo, hay una instalación de wordpress y robots.txt
+
+Entremos a la instalación de wordpress.
+Probamos con el usuario por defecto: admin-admin. Nada. Vemos que wordpress nos dice que no existe ese usuario con un aviso muy concreto. (6)
+
+Podemos probar a atacar con fuerza bruta, pero antes probemos a sacar los usuarios con wpscan:
+
+wpscan --url 192.168.1.105 --enumerate u
+
+Nos dice que no puede enumerar los usuarios.
+Probemos a hacer un ataque de fuerza bruta con hydra:
+
+# hydra 192.168.1.105 -L fsocity_sorted.dic http-form-post "/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit:Invalid username" -p test -t 64
+
+Es decir:
+-L (lista de usuarios a probar: fsocity_sorted.dic)
+http-form-post (forma en la que se hace el envio de los datos)
+"[datos]"{
+  /wp-login.php (archivo a atacar)
+  log=^USER^ (En el campo log que se ve en el código fuente de la página web introduce el usuario que estés probando)
+  pwd=^PASS^ (En el campo pwd la contraseña especificada por -p test)
+  wp-submit (botón a pulsar)
+  Invalid username (aviso si el usuario es erróneo)
+}
+-t 64 (número de threads, agilizar el proceso)
+
+Tenemos el usuario: Elliot (casualmente es el nombre del protagonista de la serie jeje) (7)
+
+Probemos a atacar wordpress con wpscan (otra vez) para encontrar la contraseña:
+
+# wpscan -u 192.168.1.105 -w /home/oscar/Downloads/fsocity_sorted.dic --username Elliot
+
+Obtenemos la contraseña: ER28-0652 (8)
+
+Entramos a wp-admin con esas credenciales y procedemos a introducir una reverse-shell (la que mas me gusta es la de pentest-monkey)
+Modificamos el archivo (introducimos nuestra ip y el puerto en el que lo queremos, yo dejaré el 1234)
+Para introducir la revershe-shell vamos a modificar un theme de wordpress con el código de la shell.
+Accedemos a Appearance-Editor. Seleccionamos el tema que queremos modificar (yo usaré el Twenty Thirteen)
+Seleccionamos un archivo php, yo usaré el de 404.php (fallo de página)
+Borramos todo el código e introducimos el de la shell. Guardamos.
+
+Establecemos la esucha con netcat:
+
+# nc -v -l -n -p 1234
+
+Ejecutamos la shell accediendo a la direccion: http://192.168.1.105/wp-content/themes/twentythirteen/404.php
+Netcat nos detecta la conexión (9)
+Accedemos a la carpeta home y buscamos los usrs: encontramos robot
+
+# cd home/robot
+# ls
+
+Encontramos la segunda flag y un archivo que parece hacer una referencia a una contraseña (10)
+No podemos abrir la flag porque dice que no tenemos permisos. Abriendo el fichero de la contraseña vemos lo que parece la contraseña de robot, encriptada por md5 (11)
+La desencriptamos y obtenemos la contraseña: abcdefghijklmnopqrstuvwxyz
+Probamos a cambiar de usuario:
+
+# su - robot
+
+Nos dice que ese comando tiene que ser ejecutado desde una terminal. Probamos a abrir un bash
+
+# /bin/bash
+
+Sigue fallando. Probemos a abrirla con python:
+
+# python -c "import pty; pty.spawn('/bin/bash');"
+
+Vemos que nos abre una terminal en un usuario llamado daemon (12)
+Realicemos el cambio de usuario y volvamos a abrir bash.
+
+# su - robot
+# python -c "import pty; pty.spawn('/bin/bash');"
+
+Ahora somos robot (13), abrimos la flag (14), como ahora somos el usuario correcto podemos abrirla.
+Lo siguiente sería poseer derechos de root (posiblemente la siguiente flag estará en /root)
+Tras pegarme con intentar abrir el puerto 22 (ssh) para poder tener mejor acceso o intentar hacer una fuerza bruta con hydra y el diccionario que nos han dado.
+No tiene instalado iptables instalado, desisto.
+Mientras realizaba esas pruebas me doy cuenta que tiene instalado nmap (lo he usado realmente darme cuenta de ello para ver los puertos abiertos)
+Buscando mas maneras encuentro este enlace: https://www.rebootuser.com/?p=1623
+Vemos que nmap --interactive puede hacer un shell-escape
+
+# nmap --interactive
+# !sh  (Accedemos a la shell)
+# cd /root
+
+Tenemos la ultima flag (15)
